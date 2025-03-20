@@ -1,6 +1,14 @@
 # Common Word-Level Boundaries for Multi-LLM Text Generation
 
-This project demonstrates a method for generating text segments from multiple language models (LLMs) while ensuring that each generated segment ends on common word-level boundaries across all tokenizers. This approach prevents biased perplexity assessments that could arise from incomplete word generation.
+This project demonstrates a method for generating text segments from multiple language models (LLMs) without training.
+
+
+# TODO List :
+The following points to achieve in the projects:
+   - Debug the code
+   - Design insightfull and novel experiments
+   - Implement them and presents the results
+   - Draw a plan for the presentation
 
 ## Overview
 
@@ -11,8 +19,8 @@ In multi-LLM fusion, each source LLM generates text segments token-by-token. How
 
 ## Project Structure
 
-- **`generate_text_segments()`**: The main function that orchestrates token-by-token generation and boundary checking for each model.
-- **`longest_common_prefix()`**: A helper function that computes the longest common prefix (in terms of complete words) among lists of words.
+- **`source`**: Contains the source code to implement cool fusion
+- **`experiments`**: This folder contains executable notebooks to reproduce experiments
 
 ## Requirements
 
@@ -43,7 +51,7 @@ In multi-LLM fusion, each source LLM generates text segments token-by-token. How
 ## Usage
 
 ```python
-from your_module import generate_text_segments
+from source.cool_fusion import CoolFusion
 
 # Example dictionaries mapping model names to model/tokenizer objects
 models = {
