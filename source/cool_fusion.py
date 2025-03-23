@@ -1,21 +1,24 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
-def longest_common_prefix(list_of_word_lists):
+def common_concatenated_prefix(list_of_word_lists):
     """
-    Given a list of lists (each a sequence of words), return the longest common prefix as a list of words.
+    Given a list of lists (each a sequence of words), return a concatenated prefix
+    that is common to all lists while ensuring that it ends at a word boundary for every sequence.
     """
     if not list_of_word_lists:
-        return []
-    min_length = min(len(words) for words in list_of_word_lists)
-    prefix = []
-    for i in range(min_length):
-        word = list_of_word_lists[0][i]
-        if all(words[i] == word for words in list_of_word_lists):
-            prefix.append(word)
-        else:
-            break
-    return prefix
+        return ""
+
+    current_prefixes = ["".join(word_list[:len(word_list)]) for word_list in list_of_word_lists]
+    
+    # If all concatenated prefixes are the same, continue
+    if len(set(current_prefixes)) <= 1  and len(current_prefixes[0]) > 1 :
+        return True  # Return the last valid common concatenation
+
+    
+    # If we reach here, the entire shortest sequence is a valid common prefix
+    return False
+
 
 
 
@@ -70,18 +73,24 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
                 # For now, it is just split, to modify
                 words = candidate_text.split()
                 tokenized_words.append(words)
+
+                # words = tokenizers[name].pre_tokenizer.pre_tokenize_str(text)
+                # tokenized_words.append(words)
             
             # 4. Compute the longest common prefix (word-level) among all tokenizations without last word
             tokenized_words = [words[:-1] for words in tokenized_words]
-            common_prefix_words = longest_common_prefix(tokenized_words)
-            common_prefix_text = " ".join(common_prefix_words)
-            
-            if candidate_text == common_prefix_text or candidate_text.endswith(" "):
-                finished_segments[name] = candidate_text.strip()
+            common_prefix_words = common_concatenated_prefix(tokenized_words)
+
+            # 5. If the common prefix is a complete sentence, store it as a finished segment.
+            if common_prefix_words:
+                finished_segments[name] = " ".join(tokenized_words[0])
+                continue
         
         # If all models have generated a complete segment, we can exit early.
         if len(finished_segments) == len(models):
             break
+    
+    print('finished_segments',finished_segments)
 
     # For any model that did not produce a "complete" segment within max_length tokens,
     # fallback by trimming the candidate to the common prefix (dropping the last potentially incomplete word).
@@ -130,7 +139,27 @@ class CoolFusion:
         self.tokenizers = tokenizers
         self.max_length = max_length
 
-    def generate(self, context):
+    def generate_segments(self, context):
         text_segments = generate_text_segments(self.models, self.tokenizers, context, self.max_length)
+        # concatenate the text segments with the context
+        text_segments = {name: context + " " + text_segments[name] for name in text_segments}
         return rerank_candidates(self.models, self.tokenizers, list(text_segments.values()))
+
+    def generate(self, context):
+        # initial generation to the context:
+        generated_text = context
+
+        # generate segments until the end of the text, or until the max_length is reached
+        while len(generated_text.split()) < self.max_length:
+            segments = self.generate_segments(generated_text)
+            # if end of sentence is reached, break
+            if segments[0][0].endswith("."):
+                generated_text = segments[0][0]
+                break
+            print('generated_text',generated_text)
+
+            generated_text = segments[0][0]
+
+        return generated_text
+        
 
