@@ -1,5 +1,6 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+import numpy as np
 
 def common_concatenated_prefix(list_of_word_lists):
     """
@@ -15,11 +16,8 @@ def common_concatenated_prefix(list_of_word_lists):
     if len(set(current_prefixes)) <= 1  and len(current_prefixes[0]) > 1 :
         return True  # Return the last valid common concatenation
 
-    
     # If we reach here, the entire shortest sequence is a valid common prefix
     return False
-
-
 
 
 def generate_text_segments(models, tokenizers, context, max_length=150):
@@ -38,7 +36,7 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
     """
 
     context_encoded = {
-        name: tokenizers[name].encode(context, return_tensors="pt")
+        name: tokenizers[name].encode(context, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
         for name in models
     }
     
@@ -51,46 +49,57 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
             if name in finished_segments:
                 continue  # Skip models that already have a complete segment.
             
-            # 1. Generate one new token for this model.
+            # Ensure context is on the same device as the model
+            model_device = next(models[name].parameters()).device
+            context_encoded[name] = context_encoded[name].to(model_device)
+
+            # Generate one new token for this model
             new_token = models[name].generate(
                 context_encoded[name],
                 max_length=context_encoded[name].shape[-1] + 1,
                 do_sample=True,
-                attention_mask=torch.ones_like(context_encoded[name]),  # Add attention mask
-                pad_token_id=tokenizers[name].pad_token_id or tokenizers[name].eos_token_id  # Set pad token
+                attention_mask=torch.ones_like(context_encoded[name]).to(model_device),  # Add attention mask
+                pad_token_id=tokenizers[name].pad_token_id or tokenizers[name].eos_token_id,  # Set pad token
+                early_stopping=True
             )[:, -1:]
             
             generated_tokens[name].append(new_token)
-            context_encoded[name] = torch.cat([context_encoded[name], new_token], dim=-1)
+            context_encoded[name] = torch.cat([context_encoded[name], new_token], dim=-1).to("cpu")
             
             # 2. Decode the generated tokens to text segments.
             candidate_tokens = torch.cat(generated_tokens[name], dim=-1)
-            candidate_text = tokenizers[name].decode(candidate_tokens[0], skip_special_tokens=True)
-            
+            candidate_text = tokenizers[name].decode(candidate_tokens[0])     
+
             # 3. For each tokenizer, split candidate_text into words.
             tokenized_words = []
             for tok in tokenizers.values():
                 # For now, it is just split, to modify
-                words = candidate_text.split()
-                tokenized_words.append(words)
-
-                # words = tokenizers[name].pre_tokenizer.pre_tokenize_str(text)
+                # words = candidate_text.split()
                 # tokenized_words.append(words)
+
+                word_boundaries = []
+                word_list = tok.backend_tokenizer.pre_tokenizer.pre_tokenize_str(candidate_text)
+                for word_id in word_list:
+                    if word_id is not None:
+                        start, end = word_id[1]
+                        word_boundaries.append((start, end))
+                words_sequence = []
+                for start, end in word_boundaries:
+                    word = candidate_text[start:end]
+                    words_sequence.append(word)
+                tokenized_words.append(words_sequence)
             
             # 4. Compute the longest common prefix (word-level) among all tokenizations without last word
-            tokenized_words = [words[:-1] for words in tokenized_words]
             common_prefix_words = common_concatenated_prefix(tokenized_words)
 
             # 5. If the common prefix is a complete sentence, store it as a finished segment.
             if common_prefix_words:
-                finished_segments[name] = " ".join(tokenized_words[0])
+                finished_segments[name] = "".join(tokenized_words[0])
                 continue
         
         # If all models have generated a complete segment, we can exit early.
         if len(finished_segments) == len(models):
             break
-    
-    print('finished_segments',finished_segments)
 
     # For any model that did not produce a "complete" segment within max_length tokens,
     # fallback by trimming the candidate to the common prefix (dropping the last potentially incomplete word).
@@ -100,7 +109,7 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
             candidate_text = tokenizers[name].decode(candidate_tokens[0], skip_special_tokens=True)
             words = candidate_text.split()
             # If at least one word is complete, drop the last token; otherwise, use the candidate as is.
-            finished_segments[name] = " ".join(words[:-1]) if len(words) > 1 else candidate_text
+            finished_segments[name] = "".join(words[:-1]) if len(words) > 1 else candidate_text
 
     return finished_segments
 
@@ -142,8 +151,16 @@ class CoolFusion:
     def generate_segments(self, context):
         text_segments = generate_text_segments(self.models, self.tokenizers, context, self.max_length)
         # concatenate the text segments with the context
-        text_segments = {name: context + " " + text_segments[name] for name in text_segments}
-        return rerank_candidates(self.models, self.tokenizers, list(text_segments.values()))
+        text_segments = {name: context + text_segments[name] for name in text_segments}
+
+        rekank = rerank_candidates(self.models, self.tokenizers, list(text_segments.values()))
+
+        # if the best candidate has end of sentence, return it
+        if self.tokenizers[list(text_segments.keys())[0]].eos_token in rekank[0][0]:
+            return rekank[0][0], False
+        
+        return rekank[0][0], True
+
 
     def generate(self, context):
         # initial generation to the context:
@@ -151,14 +168,13 @@ class CoolFusion:
 
         # generate segments until the end of the text, or until the max_length is reached
         while len(generated_text.split()) < self.max_length:
-            segments = self.generate_segments(generated_text)
+            segment, end = self.generate_segments(generated_text)
             # if end of sentence is reached, break
-            if segments[0][0].endswith("."):
-                generated_text = segments[0][0]
+            if not end:
+                generated_text = segment
                 break
-            print('generated_text',generated_text)
 
-            generated_text = segments[0][0]
+            generated_text = segment
 
         return generated_text
         
