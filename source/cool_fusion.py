@@ -56,7 +56,7 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
             # Generate one new token for this model
             new_token = models[name].generate(
                 context_encoded[name],
-                max_length=context_encoded[name].shape[-1] + 1,
+                max_new_tokens=1,
                 do_sample=True,
                 attention_mask=torch.ones_like(context_encoded[name]).to(model_device),  # Add attention mask
                 pad_token_id=tokenizers[name].pad_token_id or tokenizers[name].eos_token_id,  # Set pad token
