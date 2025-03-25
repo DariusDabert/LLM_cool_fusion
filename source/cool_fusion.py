@@ -78,16 +78,19 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
                 # tokenized_words.append(words)
 
                 word_boundaries = []
-                word_list = tok.backend_tokenizer.pre_tokenizer.pre_tokenize_str(candidate_text)
-                for word_id in word_list:
-                    if word_id is not None:
-                        start, end = word_id[1]
-                        word_boundaries.append((start, end))
-                words_sequence = []
-                for start, end in word_boundaries:
-                    word = candidate_text[start:end]
-                    words_sequence.append(word)
-                tokenized_words.append(words_sequence)
+                if tok.backend_tokenizer.pre_tokenizer:
+                    word_list = tok.backend_tokenizer.pre_tokenizer.pre_tokenize_str(candidate_text)
+                    for word_id in word_list:
+                        if word_id is not None:
+                            start, end = word_id[1]
+                            word_boundaries.append((start, end))
+                    words_sequence = []
+                    for start, end in word_boundaries:
+                        word = candidate_text[start:end]
+                        words_sequence.append(word)
+                else:
+                    words_sequence = candidate_text.split()
+                tokenized_words.append(words_sequence[:-1])
             
             # 4. Compute the longest common prefix (word-level) among all tokenizations without last word
             common_prefix_words = common_concatenated_prefix(tokenized_words)
