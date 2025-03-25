@@ -56,7 +56,7 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
             # Generate one new token for this model
             new_token = models[name].generate(
                 context_encoded[name],
-                max_new_tokens=1,
+                max_new_tokens= 1,
                 do_sample=True,
                 attention_mask=torch.ones_like(context_encoded[name]).to(model_device),  # Add attention mask
                 pad_token_id=tokenizers[name].pad_token_id or tokenizers[name].eos_token_id,  # Set pad token
@@ -146,13 +146,12 @@ def rerank_candidates(models, tokenizers, candidates):
     return ranked
 
 class CoolFusion:
-    def __init__(self, models, tokenizers, max_length=50):
+    def __init__(self, models, tokenizers):
         self.models = models
         self.tokenizers = tokenizers
-        self.max_length = max_length
 
-    def generate_segments(self, context):
-        text_segments = generate_text_segments(self.models, self.tokenizers, context, self.max_length)
+    def generate_segments(self, context, max_length=150):
+        text_segments = generate_text_segments(self.models, self.tokenizers, context, max_length)
         # concatenate the text segments with the context
         text_segments = {name: context + text_segments[name] for name in text_segments}
 
@@ -165,13 +164,13 @@ class CoolFusion:
         return rekank[0][0], True
 
 
-    def generate(self, context):
+    def generate(self, contex, max_length=150):
         # initial generation to the context:
         generated_text = context
 
         # generate segments until the end of the text, or until the max_length is reached
-        while len(generated_text.split()) < self.max_length:
-            segment, end = self.generate_segments(generated_text)
+        while len(generated_text.split()) < max_length:
+            segment, end = self.generate_segments(generated_text, max_length)
             # if end of sentence is reached, break
             if not end:
                 generated_text = segment
