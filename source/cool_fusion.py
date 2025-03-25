@@ -56,7 +56,7 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
             new_token = models[name].generate(
                 context_encoded[name],
                 max_new_tokens= 1,
-                do_sample=True,
+                do_sample=False,
                 attention_mask=torch.ones_like(context_encoded[name]).to(model_device),  # Add attention mask
                 pad_token_id=tokenizers[name].pad_token_id or tokenizers[name].eos_token_id,  # Set pad token
                 early_stopping=True
@@ -102,7 +102,7 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
         # If all models have generated a complete segment, we can exit early.
         if len(finished_segments) == len(models):
             break
-        
+
     return finished_segments
 
 
@@ -128,9 +128,9 @@ def rerank_candidates(models, tokenizers, candidates):
     Lower average perplexity is considered better.
     """
     ranked = []
-    for candidate in candidates:
+    for i, candidate in enumerate(candidates):
         mean_ppl = compute_perplexity(models, tokenizers, candidate)
-        ranked.append((candidate, mean_ppl))
+        ranked.append((candidate, mean_ppl, i))
     ranked.sort(key=lambda x: x[1])  # lower perplexity is better
     return ranked
 
@@ -139,7 +139,7 @@ class CoolFusion:
         self.models = models
         self.tokenizers = tokenizers
 
-    def generate_segments(self, context, max_length=150):
+    def generate_segments(self, context, max_length=150, verbose=False):
         text_segments = generate_text_segments(self.models, self.tokenizers, context, max_length)
         # concatenate the text segments with the context
         text_segments = {name: context + text_segments[name] for name in text_segments}
@@ -148,25 +148,38 @@ class CoolFusion:
 
         # if the best candidate has end of sentence, return it
         if self.tokenizers[list(text_segments.keys())[0]].eos_token in rekank[0][0]:
-            return rekank[0][0], False
+            if verbose:
+                return rekank[0][0], False, rekank[0][2]
+            else:
+                return rekank[0][0], False
         
-        return rekank[0][0], True
+        if verbose:
+            return rekank[0][0], True, rekank[0][2]
+        else:
+            return rekank[0][0], True
 
 
-    def generate(self, context, max_length=150):
+    def generate(self, context, max_length=150, verbose=False):
         # initial generation to the context:
         generated_text = context
+        generated_id = []
 
         # generate segments until the end of the text, or until the max_length is reached
         while len(generated_text.split()) < max_length:
-            segment, end = self.generate_segments(generated_text, max_length)
+            if verbose:
+                segment, end, model_id = self.generate_segments(generated_text, max_length, verbose)
+                generated_id.append(model_id)
+            else: 
+                segment, end = self.generate_segments(generated_text, max_length)
             # if end of sentence is reached, break
             if not end:
                 generated_text = segment
                 break
-
+            
             generated_text = segment
-
-        return generated_text
+        if verbose:
+            return generated_text, generated_id
+        else:
+            return generated_text
         
 

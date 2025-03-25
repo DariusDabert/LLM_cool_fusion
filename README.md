@@ -5,10 +5,9 @@ This project demonstrates a method for generating text segments from multiple la
 
 # TODO List :
 The following points to achieve in the projects:
-   - Debug the code
-   - Design insightfull and novel experiments
-   - Implement them and presents the results
-   - Draw a plan for the presentation
+   - draw a tree with possibilities and perplexity per tokens
+   - run experiments MMLU
+   - try with a small model and a big one
 
 ## Overview
 
