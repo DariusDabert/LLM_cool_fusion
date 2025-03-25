@@ -49,11 +49,10 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
             if name in finished_segments:
                 continue  # Skip models that already have a complete segment.
             
-            # Ensure context is on the same device as the model
             model_device = next(models[name].parameters()).device
             context_encoded[name] = context_encoded[name].to(model_device)
 
-            # Generate one new token for this model
+            # 1. Generate one new token for this model
             new_token = models[name].generate(
                 context_encoded[name],
                 max_new_tokens= 1,
@@ -103,17 +102,7 @@ def generate_text_segments(models, tokenizers, context, max_length=150):
         # If all models have generated a complete segment, we can exit early.
         if len(finished_segments) == len(models):
             break
-
-    # For any model that did not produce a "complete" segment within max_length tokens,
-    # fallback by trimming the candidate to the common prefix (dropping the last potentially incomplete word).
-    for name in models:
-        if name not in finished_segments:
-            candidate_tokens = torch.cat(generated_tokens[name], dim=-1)
-            candidate_text = tokenizers[name].decode(candidate_tokens[0], skip_special_tokens=True)
-            words = candidate_text.split()
-            # If at least one word is complete, drop the last token; otherwise, use the candidate as is.
-            finished_segments[name] = "".join(words[:-1]) if len(words) > 1 else candidate_text
-
+        
     return finished_segments
 
 
