@@ -164,7 +164,7 @@ class CoolFusion:
         return rekank[0][0], True
 
 
-    def generate(self, contex, max_length=150):
+    def generate(self, context, max_length=150):
         # initial generation to the context:
         generated_text = context
 
