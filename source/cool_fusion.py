@@ -122,14 +122,14 @@ def compute_perplexity(models, tokenizers, text_segment):
     return mean_perplexity / len(models)
 
 
-def rerank_candidates(models, tokenizers, candidates):
+def rerank_candidates(models, tokenizers, candidates, context):
     """
     Compute average perplexity from both models and sort candidates.
     Lower average perplexity is considered better.
     """
     ranked = []
     for i, candidate in enumerate(candidates):
-        mean_ppl = compute_perplexity(models, tokenizers, candidate)
+        mean_ppl = compute_perplexity(models, tokenizers, context + candidate)
         ranked.append((candidate, mean_ppl, i))
     ranked.sort(key=lambda x: x[1])  # lower perplexity is better
     return ranked
@@ -141,44 +141,47 @@ class CoolFusion:
 
     def generate_segments(self, context, max_length=150, verbose=False):
         text_segments = generate_text_segments(self.models, self.tokenizers, context, max_length)
-        # concatenate the text segments with the context
-        text_segments = {name: context + text_segments[name] for name in text_segments}
 
-        rekank = rerank_candidates(self.models, self.tokenizers, list(text_segments.values()))
+        rekank = rerank_candidates(self.models, self.tokenizers, list(text_segments.values()), context)
 
         # if the best candidate has end of sentence, return it
         if self.tokenizers[list(text_segments.keys())[0]].eos_token in rekank[0][0]:
             if verbose:
-                return rekank[0][0], False, rekank[0][2]
+                return rekank, True, rekank[0][2]
             else:
-                return rekank[0][0], False
+                return rekank[0][0], True
         
         if verbose:
-            return rekank[0][0], True, rekank[0][2]
+            return rekank, False, rekank[0][2]
         else:
-            return rekank[0][0], True
+            return rekank[0][0], False
 
 
     def generate(self, context, max_length=150, verbose=False):
         # initial generation to the context:
         generated_text = context
-        generated_id = []
+        if verbose:
+            generated_id = []
+            generated_segments_ppl = []
 
         # generate segments until the end of the text, or until the max_length is reached
         while len(generated_text.split()) < max_length:
             if verbose:
-                segment, end, model_id = self.generate_segments(generated_text, max_length, verbose)
+                segments, end, model_id = self.generate_segments(generated_text, max_length, verbose)
                 generated_id.append(model_id)
+                generated_text += segments[0][0]
+                generated_segments_ppl.append(segments)
+
             else: 
                 segment, end = self.generate_segments(generated_text, max_length)
+                generated_text += segment
+            
             # if end of sentence is reached, break
-            if not end:
-                generated_text = segment
+            if end:
                 break
             
-            generated_text = segment
         if verbose:
-            return generated_text, generated_id
+            return generated_text, generated_id, generated_segments_ppl
         else:
             return generated_text
         
