@@ -129,8 +129,8 @@ def rerank_candidates(models, tokenizers, candidates):
     """
     ranked = []
     for i, candidate in enumerate(candidates):
-        mean_ppl = compute_perplexity(models, tokenizers, candidate)
-        ranked.append((candidate, mean_ppl, i))
+        mean_perplexity = compute_perplexity(models, tokenizers, candidate)
+        ranked.append((candidate, mean_perplexity, i))
     ranked.sort(key=lambda x: x[1])  # lower perplexity is better
     return ranked
 
@@ -177,6 +177,7 @@ class CoolFusion:
                 break
             
             generated_text = segment
+
         if verbose:
             return generated_text, generated_id
         else:
