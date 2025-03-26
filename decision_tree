@@ -1,0 +1,227 @@
+digraph {
+	subgraph part1 {
+		label="part 1"
+		word_0 [label=" In"]
+		poss_0_0 [label=" In
+(Score: 32.7667932510376)
+Model: 0"]
+		word_0 -> poss_0_0
+		poss_0_1 [label=" I
+(Score: 34.856032371520996)
+Model: 1"]
+		word_0 -> poss_0_1
+		edge [color=red]
+		word_0 -> poss_0_1
+		edge [color=black]
+		word_1 [label=" recent"]
+		word_0 -> word_1
+		poss_1_0 [label=" recent
+(Score: 28.71079921722412)
+Model: 0"]
+		word_1 -> poss_1_0
+		edge [color=red]
+		word_1 -> poss_1_0
+		edge [color=black]
+		poss_1_1 [label=" recent
+(Score: 28.71079921722412)
+Model: 1"]
+		word_1 -> poss_1_1
+		edge [color=red]
+		word_1 -> poss_1_1
+		edge [color=black]
+		word_2 [label=" years"]
+		word_1 -> word_2
+		poss_2_0 [label=" years
+(Score: 23.770140647888184)
+Model: 0"]
+		word_2 -> poss_2_0
+		edge [color=red]
+		word_2 -> poss_2_0
+		edge [color=black]
+		poss_2_1 [label=" years
+(Score: 23.770140647888184)
+Model: 1"]
+		word_2 -> poss_2_1
+		edge [color=red]
+		word_2 -> poss_2_1
+		edge [color=black]
+		word_3 [label=", there"]
+		word_2 -> word_3
+		poss_3_0 [label=", there
+(Score: 18.491342544555664)
+Model: 0"]
+		word_3 -> poss_3_0
+		edge [color=red]
+		word_3 -> poss_3_0
+		edge [color=black]
+		poss_3_1 [label=", there
+(Score: 18.491342544555664)
+Model: 1"]
+		word_3 -> poss_3_1
+		edge [color=red]
+		word_3 -> poss_3_1
+		edge [color=black]
+		word_4 [label=" have"]
+		word_3 -> word_4
+		poss_4_0 [label=" have
+(Score: 16.262102127075195)
+Model: 0"]
+		word_4 -> poss_4_0
+		poss_4_1 [label=" has
+(Score: 17.23247718811035)
+Model: 1"]
+		word_4 -> poss_4_1
+		edge [color=red]
+		word_4 -> poss_4_1
+		edge [color=black]
+	}
+	subgraph part2 {
+		label="part 2"
+		word_5 [label=" been"]
+		poss_5_0 [label=" been
+(Score: 14.285436153411865)
+Model: 0"]
+		word_5 -> poss_5_0
+		edge [color=red]
+		word_5 -> poss_5_0
+		edge [color=black]
+		poss_5_1 [label=" been
+(Score: 14.285436153411865)
+Model: 1"]
+		word_5 -> poss_5_1
+		edge [color=red]
+		word_5 -> poss_5_1
+		edge [color=black]
+		word_6 [label=" reports"]
+		word_5 -> word_6
+		poss_6_0 [label=" reports
+(Score: 13.637425899505615)
+Model: 1"]
+		word_6 -> poss_6_0
+		poss_6_1 [label=" numerous
+(Score: 13.80858039855957)
+Model: 0"]
+		word_6 -> poss_6_1
+		edge [color=red]
+		word_6 -> poss_6_1
+		edge [color=black]
+		word_7 [label=" of"]
+		word_6 -> word_7
+		poss_7_0 [label=" of
+(Score: 12.257099628448486)
+Model: 0"]
+		word_7 -> poss_7_0
+		edge [color=red]
+		word_7 -> poss_7_0
+		edge [color=black]
+		poss_7_1 [label=" of
+(Score: 12.257099628448486)
+Model: 1"]
+		word_7 -> poss_7_1
+		edge [color=red]
+		word_7 -> poss_7_1
+		edge [color=black]
+		word_8 [label=" Chinese"]
+		word_7 -> word_8
+		poss_8_0 [label=" Chinese
+(Score: 11.675003051757812)
+Model: 1"]
+		word_8 -> poss_8_0
+		poss_8_1 [label=" journalists
+(Score: 11.808486461639404)
+Model: 0"]
+		word_8 -> poss_8_1
+		edge [color=red]
+		word_8 -> poss_8_1
+		edge [color=black]
+		word_9 [label=" journalists"]
+		word_8 -> word_9
+		poss_9_0 [label=" journalists
+(Score: 10.634548664093018)
+Model: 0"]
+		word_9 -> poss_9_0
+		edge [color=red]
+		word_9 -> poss_9_0
+		edge [color=black]
+		poss_9_1 [label=" journalists
+(Score: 10.634548664093018)
+Model: 1"]
+		word_9 -> poss_9_1
+		edge [color=red]
+		word_9 -> poss_9_1
+		edge [color=black]
+	}
+	subgraph part3 {
+		label="part 3"
+		word_10 [label=" being"]
+		poss_10_0 [label=" being
+(Score: 9.97306203842163)
+Model: 0"]
+		word_10 -> poss_10_0
+		edge [color=red]
+		word_10 -> poss_10_0
+		edge [color=black]
+		poss_10_1 [label=" being
+(Score: 9.97306203842163)
+Model: 1"]
+		word_10 -> poss_10_1
+		edge [color=red]
+		word_10 -> poss_10_1
+		edge [color=black]
+		word_11 [label=" detained"]
+		word_10 -> word_11
+		poss_11_0 [label=" detained
+(Score: 9.519274711608887)
+Model: 0"]
+		word_11 -> poss_11_0
+		edge [color=red]
+		word_11 -> poss_11_0
+		edge [color=black]
+		poss_11_1 [label=" detained
+(Score: 9.519274711608887)
+Model: 1"]
+		word_11 -> poss_11_1
+		edge [color=red]
+		word_11 -> poss_11_1
+		edge [color=black]
+		word_12 [label=", arrested"]
+		word_11 -> word_12
+		poss_12_0 [label=", arrested
+(Score: 8.731789588928223)
+Model: 1"]
+		word_12 -> poss_12_0
+		poss_12_1 [label=" or
+(Score: 9.249582529067993)
+Model: 0"]
+		word_12 -> poss_12_1
+		edge [color=red]
+		word_12 -> poss_12_1
+		edge [color=black]
+		word_13 [label=", or"]
+		word_12 -> word_13
+		poss_13_0 [label=", or
+(Score: 7.751815319061279)
+Model: 1"]
+		word_13 -> poss_13_0
+		poss_13_1 [label=" or
+(Score: 8.917091131210327)
+Model: 0"]
+		word_13 -> poss_13_1
+		edge [color=red]
+		word_13 -> poss_13_1
+		edge [color=black]
+		word_14 [label=" harassed"]
+		word_13 -> word_14
+		poss_14_0 [label=" harassed
+(Score: 7.842377185821533)
+Model: 1"]
+		word_14 -> poss_14_0
+		poss_14_1 [label=" forced
+(Score: 7.869680166244507)
+Model: 0"]
+		word_14 -> poss_14_1
+		edge [color=red]
+		word_14 -> poss_14_1
+		edge [color=black]
+	}
+}
