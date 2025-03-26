@@ -2,13 +2,6 @@
 
 This project demonstrates a method for generating text segments from multiple language models (LLMs) without training.
 
-
-# TODO List :
-The following points to achieve in the projects:
-   - draw a tree with possibilities and perplexity per tokens
-   - run experiments MMLU
-   - try with a small model and a big one
-
 ## Overview
 
 In multi-LLM fusion, each source LLM generates text segments token-by-token. However, the tokenizers for different models may have different definitions of word boundaries. Our solution:
@@ -26,6 +19,7 @@ In multi-LLM fusion, each source LLM generates text segments token-by-token. How
 - Python 3.7+
 - [PyTorch](https://pytorch.org/)
 - Transformers library (or any similar library providing `.encode()`, `.decode()`, and `.generate()` methods for LLMs)
+- datasets librairy
 
 ## Installation
 
@@ -44,7 +38,7 @@ In multi-LLM fusion, each source LLM generates text segments token-by-token. How
 
 3. Install the required packages:
    ```bash
-   pip install torch transformers
+   pip install -r requirements.txt
    ```
 
 ## Usage

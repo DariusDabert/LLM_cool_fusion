@@ -1,3 +1,7 @@
 torch
 transformers
 huggingface_hub
+datasets
+tiktoken
+graphviz
+llm_guard
